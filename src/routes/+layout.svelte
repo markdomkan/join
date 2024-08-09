@@ -1,3 +1,18 @@
+<script lang="ts">
+	import ErrorsPopup from '$lib/components/ErrorsPopup.svelte';
+	import initializeProviders from '$lib/providers';
+	import { onMount } from 'svelte';
+	import type { Snippet } from 'svelte';
+
+	let { children }: { children: Snippet } = $props();
+
+	let ready = $state(false);
+
+	onMount(async () => {
+		await initializeProviders();
+		ready = true;
+	});
+</script>
 
 <svelte:head>
 	<meta name="theme-color" media="(prefers-color-scheme: light)" content="cyan" />
@@ -5,9 +20,12 @@
 </svelte:head>
 
 <main>
-
-	
-	<slot />
+	{#if ready}
+		{@render children()}
+	{:else}
+		<p>Loading...</p>
+	{/if}
+	<ErrorsPopup />
 </main>
 
 <style>

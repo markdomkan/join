@@ -1,0 +1,17 @@
+{
+	"rules": {
+		".read": false,
+		".write": false,
+		"$roomId": {
+			".write": "auth.uid !== null && !data.exists()",
+			".read": "auth.uid !== null",
+			"requests": {
+				"$requestId": {
+					".read": "root.child($roomId).child('requests').child(auth.uid).exists()",
+					".write": "!data.exists() || ($requestId === auth.uid || root.child($roomId).child('ownerId').val() === auth.uid)",
+					".validate": "newData.child('status').val() === 'waiting' || (newData.child('status').val() === 'accepted' && root.child($roomId).child('ownerId').val() === auth.uid)"
+				}
+			}
+		}
+	}
+}
