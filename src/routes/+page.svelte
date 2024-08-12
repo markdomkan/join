@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { getUserId } from '$lib/providers/firebase/auth';
 	import { createRoomIdentifier } from '$lib/providers/identifier';
 	import { publishNewRoom } from '$lib/repositories/roomRepository';
+	import { user } from '$lib/stores/user.svelte';
 
 	let newRoomId = '';
 
 	async function createRoom() {
 		const roomId = createRoomIdentifier();
-		await publishNewRoom(roomId, getUserId());
+		await publishNewRoom(roomId, user.uid!);
 		goto(`/${roomId}`);
 	}
 </script>

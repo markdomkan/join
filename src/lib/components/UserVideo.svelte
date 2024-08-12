@@ -9,9 +9,7 @@
 			return;
 		}
 		video.srcObject = mediaStreams.user;
-		console.log('Playing video');
 		await video.play();
-		console.log('Video played');
 	}
 </script>
 
