@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { createNewRoom } from '$lib/application/createNewRoom';
+	import { getUserId } from '$lib/providers/firebase/auth';
+	import { createRoomIdentifier } from '$lib/providers/identifier';
+	import { publishNewRoom } from '$lib/repositories/roomRepository';
 
 	let newRoomId = '';
 
 	async function createRoom() {
-		const roomId = await createNewRoom();
+		const roomId = createRoomIdentifier();
+		await publishNewRoom(roomId, getUserId());
 		goto(`/${roomId}`);
 	}
 </script>
