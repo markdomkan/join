@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { mediaStreams } from '$lib/stores/mediaStreams.svelte';
+	import { store } from '$lib/providers/store.svelte';
 
 	let video: HTMLVideoElement;
 
 	$effect(() => void setMediaStreamToLocalVideo());
 	async function setMediaStreamToLocalVideo() {
-		if (!mediaStreams.user) {
+		if (!store.user.mediaStream) {
 			return;
 		}
-		video.srcObject = mediaStreams.user;
+		video.srcObject = store.user.mediaStream;
 		await video.play();
 	}
 </script>
@@ -23,11 +23,6 @@
 <style>
 	.video-container {
 		aspect-ratio: 16/9;
-		position: absolute;
-		width: 30%;
-		bottom: 30px;
-		left: 30px;
-		resize: horizontal;
 		overflow: hidden;
 		border-radius: 6px;
 	}

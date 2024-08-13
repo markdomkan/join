@@ -1,17 +1,9 @@
 <script lang="ts">
 	import ErrorsPopup from '$lib/components/ErrorsPopup.svelte';
-	import initializeProviders from '$lib/providers';
-	import { onMount } from 'svelte';
+	import { providers } from '$lib/providers';
 	import type { Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
-
-	let ready = $state(false);
-
-	onMount(async () => {
-		await initializeProviders();
-		ready = true;
-	});
 </script>
 
 <svelte:head>
@@ -20,21 +12,20 @@
 </svelte:head>
 
 <main>
-	{#if ready}
-		{@render children()}
-	{:else}
+	{#await providers.init()}
 		<p>Loading...</p>
-	{/if}
+	{:then}
+		{@render children()}
+	{/await}
+
 	<ErrorsPopup />
 </main>
 
 <style>
 	main {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
 		height: 100%;
 		width: 100%;
+		display: flex;
+		flex-direction: column;
 	}
 </style>

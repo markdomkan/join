@@ -1,7 +1,7 @@
 export type Participant = {
-	id: string;
 	name: string;
 	status: RequestStatus;
+	mediaStream?: MediaStream;
 };
 
 export const enum RequestStatus {
@@ -9,3 +9,5 @@ export const enum RequestStatus {
 	Accepted = 'accepted',
 	Rejected = 'rejected'
 }
+
+export type Room = { id: string; ownerId: string; participants?: { [id: string]: Participant } };

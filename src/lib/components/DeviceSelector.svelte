@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { addError } from '$lib/stores/errors.svelte';
-	import { mediaStreams } from '$lib/stores/mediaStreams.svelte';
+	import { store } from '$lib/providers/store.svelte';
 
 	let devices: MediaDeviceInfo[] = $state([]);
 	const videoInputDevices = $derived(devices.filter((device) => device.kind === 'videoinput'));
@@ -26,7 +25,7 @@
 				deviceId: videoInputDeviceId ? { exact: videoInputDeviceId } : undefined
 			}
 		});
-		mediaStreams.user = mediaStream;
+		store.user.mediaStream = mediaStream;
 	}
 
 	async function getAvailableDevices() {
@@ -39,7 +38,9 @@
 				NotFoundError: 'It seems that there are no video or audio devices available',
 				default: 'An error occurred while trying to get the available devices'
 			};
-			addError(errors[(error as Error).name] || `${errors.default}: ${(error as Error).message}`);
+			store.errors.push({
+				message: errors[(error as Error).name] || `${errors.default}: ${(error as Error).message}`
+			});
 		}
 	}
 </script>

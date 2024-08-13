@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { createRoomIdentifier } from '$lib/providers/identifier';
-	import { publishNewRoom } from '$lib/repositories/roomRepository';
-	import { user } from '$lib/stores/user.svelte';
+	import { authProvider } from '$lib/providers/auth';
+	import { idProvider } from '$lib/providers/identifier';
+	import { roomRepository } from '$lib/providers/repositories/roomRepository';
 
-	let newRoomId = '';
+	let newRoomId = $state('');
 
 	async function createRoom() {
-		const roomId = createRoomIdentifier();
-		await publishNewRoom(roomId, user.uid!);
-		goto(`/${roomId}`);
+		const roomId = idProvider.create();
+		const ownerId = authProvider.getUserId();
+		await roomRepository.publishNewRoomId(roomId, ownerId);
+		await goto(`/${roomId}`);
 	}
 </script>
 

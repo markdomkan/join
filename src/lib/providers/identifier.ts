@@ -1,9 +1,9 @@
 import { ulid } from 'ulid';
 
-export function createRoomIdentifier() {
+function create() {
 	return ulid();
 }
 
-export function createClientIdentifier() {
-	return ulid();
-}
+export const idProvider = {
+	create
+};

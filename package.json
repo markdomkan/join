@@ -31,6 +31,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@markdomkan/js-events": "^1.0.5",
 		"firebase": "^10.12.5",
 		"ulid": "^2.3.0"
 	}

@@ -1,7 +1,11 @@
 import initializeFirebase from './firebase';
 import { initializeFirebaseAuth } from './firebase/auth';
 
-export default async function initializeProviders() {
+async function init() {
 	await initializeFirebase();
 	await initializeFirebaseAuth();
 }
+
+export const providers = {
+	init
+};
