@@ -1,22 +1,25 @@
 <script lang="ts">
-	import { store } from '$lib/providers/store.svelte';
-	import { RequestStatus } from '../../types';
-
-	const participants = $derived(store.room.participants.entries());
+	import { roomStore } from '$lib/store/room.svelte';
+	import { userStore } from '$lib/store/user.svelte';
+	import { RequestStatus } from '$lib/types';
 </script>
 
 <section>
 	<h2>Participants</h2>
-	<ul>
-		{#each participants as [_, participant]}
+	<ul class="participants-list">
+		{#each roomStore.participants as participant}
 			<li>
-				<label>
-					{participant.name}
+				<label class="participant-label">
+					<span>
+						{participant.name}
+						{#if participant.id === userStore.id}
+							<span class="participant-you">(you)</span>
+						{/if}
+					</span>
 					<select
+						disabled={participant.id === userStore.id}
 						bind:value={participant.status}
-						on:change={() => {
-							//
-						}}
+						onchange={() => roomStore.updateParticipantStatus(participant.id, participant.status)}
 					>
 						<option value={RequestStatus.Accepted}>Accepted</option>
 						<option value={RequestStatus.Rejected}>Rejected</option>
@@ -27,3 +30,19 @@
 		{/each}
 	</ul>
 </section>
+
+<style>
+	.participants-list {
+		list-style-type: none;
+		padding: 0;
+	}
+	.participant-label {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 10px;
+	}
+	.participant-you {
+		font-style: italic;
+	}
+</style>

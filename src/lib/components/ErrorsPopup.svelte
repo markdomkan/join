@@ -1,24 +1,26 @@
 <script lang="ts">
-	import { store } from '$lib/providers/store.svelte';
+	import { errorsStore } from '$lib/store/errors.svelte';
 </script>
 
-{#each store.errors as error, index}
+{#each errorsStore.errors as error, index}
 	<section class="backdrop">
 		<dialog class="card" open>
 			<header class="card-header">
 				<h2>Error</h2>
-				<button
-					on:click={async () => {
-						await error.action?.();
-						store.errors.splice(index, 1);
-					}}
-				>
-					Close
-				</button>
 			</header>
 			<section class="card-body">
 				<p>{error.message}</p>
 			</section>
+			<footer class="card-footer">
+				<button
+					on:click={async () => {
+						await error.action?.();
+						errorsStore.remove(index);
+					}}
+				>
+					Ok
+				</button>
+			</footer>
 		</dialog>
 	</section>
 {/each}

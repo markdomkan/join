@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { store } from '$lib/providers/store.svelte';
+	import { userStore } from '$lib/store/user.svelte';
 
 	let video: HTMLVideoElement;
 
 	$effect(() => void setMediaStreamToLocalVideo());
 	async function setMediaStreamToLocalVideo() {
-		if (!store.user.mediaStream) {
+		if (!userStore.mediaStream) {
 			return;
 		}
-		video.srcObject = store.user.mediaStream;
+		video.srcObject = userStore.mediaStream;
 		await video.play();
 	}
 </script>

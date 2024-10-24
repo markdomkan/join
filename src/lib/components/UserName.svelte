@@ -1,20 +1,20 @@
 <script lang="ts">
 	import { debounce } from '$lib/helper/debounce';
-	import { bus } from '$lib/providers/bus';
-	import { userRepository } from '$lib/providers/repositories/userRepository';
-	import { store } from '$lib/providers/store.svelte';
+	import { userStore } from '$lib/store/user.svelte';
+
+	let userName = $state(userStore.name);
 
 	const updateUserName = debounce(() => {
-		bus.emit('UserNameChange', store.user.name);
-		userRepository.saveUserName(store.user.name);
+		userStore.setName(userName || '');
 	});
 </script>
 
-<section class:full={!store.user.name}>
+<section class:full={!userStore.name}>
+	<h2>User name</h2>
 	<div class="container">
 		<label>
 			Your name:
-			<input type="text" onkeydown={updateUserName} bind:value={store.user.name} />
+			<input type="text" onkeydown={updateUserName} bind:value={userName} />
 		</label>
 	</div>
 </section>

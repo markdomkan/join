@@ -1,4 +1,5 @@
 export type Participant = {
+	id: string;
 	name: string;
 	status: RequestStatus;
 	mediaStream?: MediaStream;

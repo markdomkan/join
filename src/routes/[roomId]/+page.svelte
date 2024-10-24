@@ -1,69 +1,45 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import DeviceSelector from '$lib/components/DeviceSelector.svelte';
 	import Participants from '$lib/components/Participants.svelte';
 	import UserName from '$lib/components/UserName.svelte';
 	import UserVideo from '$lib/components/UserVideo.svelte';
-	import { authProvider } from '$lib/providers/auth';
-	import { roomRepository } from '$lib/providers/repositories/roomRepository';
-	import { userRepository } from '$lib/providers/repositories/userRepository';
-	import { store, storeHelpers } from '$lib/providers/store.svelte';
-	import type { PageData } from './$types';
+	import { errorsStore } from '$lib/store/errors.svelte';
+	import { roomStore } from '$lib/store/room.svelte';
+	import { userStore } from '$lib/store/user.svelte';
+	import { RequestStatus } from '$lib/types';
 
-	let { data } = $props() as { data: PageData };
-
-	async function init() {
-		await getUserInfo();
-		await getRoomInfo();
-	}
-
-	async function getUserInfo() {
-		try {
-			store.user = {
-				id: authProvider.getUserId(),
-				name: userRepository.getUserName()
-			};
-		} catch (error) {
-			store.errors.push({
-				message: 'An error occurred while trying to get the user information',
-				action: () => goto('/')
-			});
+	$effect(() => {
+		if (userStore.nameIsEmpty || roomStore.userIsParticipant) {
+			return;
 		}
-	}
+		const participantStatus =
+			roomStore.roomOwnerId === userStore.id ? RequestStatus.Accepted : RequestStatus.Waiting;
 
-	async function getRoomInfo() {
 		try {
-			store.room = storeHelpers.parseRoom(await roomRepository.getRoomInfo(data.roomId));
-		} catch (error) {
-			const errors: Record<string, string> = {
-				[roomRepository.codeErrors.RoomNotFoundError]:
-					'The room does not exist. Please check the room ID or create a new room',
-				default: 'An error occurred while trying to create the request'
-			};
-			store.errors.push({
-				message:
-					errors[(error as Error).message] || `${errors.default}: ${(error as Error).message}`,
-				action: () => goto('/')
+			roomStore.addParticipant({
+				id: userStore.id,
+				name: userStore.name,
+				status: participantStatus
 			});
+		} catch (error) {
+			errorsStore.add(error as Error);
 		}
-	}
+	});
 </script>
 
-{#await init()}
-	Loading...
-{:then}
-	<section class="grid">
-		<section class="participants"></section>
-		<section class="user-video">
-			<UserVideo />
-		</section>
-		<section class="controls">
-			<UserName />
-			<DeviceSelector />
-			<Participants />
-		</section>
+<section class="grid">
+	<section class="participants">
+		<!-- TODO -->
 	</section>
-{/await}
+	<section class="user-video">
+		<UserVideo />
+	</section>
+	<section class="controls">
+		<UserName />
+		<DeviceSelector />
+		<Participants />
+	</section>
+</section>
 
 <style>
 	.grid {
@@ -75,7 +51,6 @@
 			'user-video controls';
 		grid-template-rows: 1fr auto;
 		grid-template-columns: auto 1fr;
-
 		.participants {
 			grid-area: participants;
 			display: flex;

@@ -1,7 +1,8 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+
 	import ErrorsPopup from '$lib/components/ErrorsPopup.svelte';
 	import { providers } from '$lib/providers';
-	import type { Snippet } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
 </script>
