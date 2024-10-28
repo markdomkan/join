@@ -1,11 +1,15 @@
 <script lang="ts">
 	import { debounce } from '$lib/helper/debounce';
+	import { roomStore } from '$lib/store/room.svelte';
 	import { userStore } from '$lib/store/user.svelte';
 
 	let userName = $state(userStore.name);
 
 	const updateUserName = debounce(() => {
 		userStore.setName(userName || '');
+		if (userName) {
+			roomStore.updateParticipantName(userStore.id, userName);
+		}
 	});
 </script>
 

@@ -1,21 +1,17 @@
-import type { Participant } from '$lib/types';
-import { InMemoryBus } from '@markdomkan/in-memory-bus';
-import { userStore } from './user.svelte';
-
-export const roomEventBus = new InMemoryBus<{
-	'participant-added': Participant;
-	'room-id-updated': string;
-	'owner-id-updated': string;
-	'participants-updated': Participant[];
-	'participant-status-updated': Participant;
-}>();
+import { roomRepository } from '$lib/providers/repositories/roomRepository';
+import { type Participant } from '$lib/types';
 
 let roomId = $state<string>('');
 let roomOwnerId = $state<string>('');
 let participants = $state<Participant[]>([]);
-const userIsParticipant = $derived(
-	participants.some((participant) => participant.id === userStore.id)
-);
+
+function getParticipant(participantId: Participant['id']): Participant {
+	const participant = participants.find((participant) => participant.id === participantId);
+	if (!participant) {
+		throw new Error('Participant not found');
+	}
+	return participant;
+}
 
 export const roomStore = {
 	get roomId() {
@@ -27,35 +23,36 @@ export const roomStore = {
 	get roomOwnerId() {
 		return roomOwnerId;
 	},
-	get userIsParticipant() {
-		return userIsParticipant;
-	},
-	addParticipant: async (participant: Participant): Promise<void> => {
+	addNewParticipant: async (participant: Participant): Promise<void> => {
 		participants = [...participants, participant];
-		await roomEventBus.emitAwaitParallel('participant-added', participant);
+		await roomRepository.addNewRequestToRoom(roomId, participant);
 	},
-	setRoomId: async (id: string): Promise<void> => {
-		await roomEventBus.emitAwaitParallel('room-id-updated', id);
+	init: (id: string, ownerId: string): void => {
 		roomId = id;
-	},
-	setRoomOwnerId: async (id: string): Promise<void> => {
-		await roomEventBus.emitAwaitParallel('owner-id-updated', id);
-		roomOwnerId = id;
+		roomOwnerId = ownerId;
+		const unsubscriber = roomRepository.subscribeToParticipantsChanges(
+			roomId,
+			(newParticipants) => (participants = newParticipants)
+		);
+		$effect.root(() => unsubscriber);
 	},
 	setAllParticipants: async (newParticipants: Participant[]): Promise<void> => {
-		console.log(newParticipants);
-		await roomEventBus.emitAwaitParallel('participants-updated', newParticipants);
 		participants = newParticipants;
 	},
 	updateParticipantStatus: async (
-		id: Participant['id'],
+		participantId: Participant['id'],
 		status: Participant['status']
 	): Promise<void> => {
-		const participant = participants.find((participant) => participant.id === id);
-		if (!participant) {
-			throw new Error('Participant not found');
-		}
-		await roomEventBus.emitAwaitParallel('participant-status-updated', participant);
+		const participant = getParticipant(participantId);
+		await roomRepository.updateParticipantStatus(roomId, participant.id, status);
 		participant.status = status;
+	},
+	updateParticipantName: async (
+		participantId: Participant['id'],
+		name: Participant['name']
+	): Promise<void> => {
+		const participant = getParticipant(participantId);
+		await roomRepository.updateParticipantName(roomId, participant.id, name);
+		participant.name = name;
 	}
 };

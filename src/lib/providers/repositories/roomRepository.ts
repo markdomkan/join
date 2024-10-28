@@ -1,10 +1,5 @@
-import { get, getDatabase, onDisconnect, onValue, ref, set, update } from 'firebase/database';
 import { RequestStatus, type Participant, type Room } from '$lib/types';
-
-type User = {
-	id: string;
-	name: string;
-};
+import { get, getDatabase, onDisconnect, onValue, ref, set, update } from 'firebase/database';
 
 const CodeErrors = {
 	RoomNotFoundError: 'RoomNotFoundError'
@@ -36,18 +31,18 @@ function subscribeToParticipantsChanges(
 	});
 }
 
-async function setNewRequestToRoom(roomId: string, user: User): Promise<void> {
+async function addNewRequestToRoom(roomId: string, participant: Participant): Promise<void> {
 	const db = getDatabase();
-	const roomSnapshot = await get(ref(db, roomId));
-	const roomOwnerId = roomSnapshot.val().ownerId;
-	const status: RequestStatus =
-		roomOwnerId === user.id ? RequestStatus.Accepted : RequestStatus.Waiting;
-	const participantRef = ref(db, `${roomId}/participants/${user.id}`);
+	const participantRef = ref(db, `${roomId}/participants/${participant.id}`);
 	onDisconnect(participantRef).remove();
-	await set(participantRef, {
-		id: user.id,
-		name: user.name,
-		status
+	await set(participantRef, participant);
+}
+
+async function addMediaStreamToUser(roomId: string, userId: string, mediaStream: MediaStream) {
+	const db = getDatabase();
+	const participantRef = ref(db, `${roomId}/participants/${userId}`);
+	await update(participantRef, {
+		mediaStream
 	});
 }
 
@@ -56,17 +51,24 @@ async function updateParticipantStatus(
 	participantId: string,
 	status: RequestStatus
 ) {
-  console.log(roomId, participantId, status);
 	await update(ref(getDatabase(), `${roomId}/participants/${participantId}`), {
 		status
 	});
 }
 
+async function updateParticipantName(roomId: string, participantId: string, name: string) {
+	await update(ref(getDatabase(), `${roomId}/participants/${participantId}`), {
+		name
+	});
+}
+
 export const roomRepository = {
 	getRoomInfo,
-	codeErrors: CodeErrors,
+	CodeErrors,
 	publishNewRoomId,
 	subscribeToParticipantsChanges,
-	setNewRequestToRoom,
-	updateParticipantStatus
+	addNewRequestToRoom,
+	updateParticipantStatus,
+	addMediaStreamToUser,
+	updateParticipantName
 };

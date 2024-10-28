@@ -3,20 +3,41 @@
 	import Participants from '$lib/components/Participants.svelte';
 	import UserName from '$lib/components/UserName.svelte';
 	import UserVideo from '$lib/components/UserVideo.svelte';
+	import { RequestStatus } from '$lib/types';
 	import { errorsStore } from '$lib/store/errors.svelte';
 	import { roomStore } from '$lib/store/room.svelte';
 	import { userStore } from '$lib/store/user.svelte';
-	import { RequestStatus } from '$lib/types';
+	import { userRepository } from '$lib/providers/repositories/userRepository';
+
+	const userName = userRepository.getUserName();
+	userStore.setName(userName);
+
+
+	const userIsParticipant = $derived(
+		roomStore.participants.some((participant) => participant.id === userStore.id)
+	);
+	const userIsAccepted = $derived(
+		roomStore.participants.find((participant) => participant.id === userStore.id)?.status ===
+			RequestStatus.Accepted
+	);
 
 	$effect(() => {
-		if (userStore.nameIsEmpty || roomStore.userIsParticipant) {
-			return;
+		if (!userStore.nameIsEmpty && !userIsParticipant) {
+			connect();
 		}
+	});
+
+	$effect(() => {
+		if (userIsAccepted) {
+			connectRtc();
+		}
+	});
+
+	async function connect() {
 		const participantStatus =
 			roomStore.roomOwnerId === userStore.id ? RequestStatus.Accepted : RequestStatus.Waiting;
-
 		try {
-			roomStore.addParticipant({
+			await roomStore.addNewParticipant({
 				id: userStore.id,
 				name: userStore.name,
 				status: participantStatus
@@ -24,7 +45,10 @@
 		} catch (error) {
 			errorsStore.add(error as Error);
 		}
-	});
+	}
+	function connectRtc() {
+		// TODO
+	}
 </script>
 
 <section class="grid">
@@ -57,7 +81,6 @@
 			background-color: red;
 			flex-direction: column;
 		}
-
 		.user-video {
 			aspect-ratio: 16/9;
 			grid-area: user-video;
@@ -66,7 +89,6 @@
 			justify-content: left;
 			background-color: blue;
 		}
-
 		.controls {
 			background-color: blueviolet;
 			grid-area: controls;

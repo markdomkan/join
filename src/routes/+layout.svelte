@@ -1,8 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-
 	import ErrorsPopup from '$lib/components/ErrorsPopup.svelte';
-	import { providers } from '$lib/providers';
 
 	let { children }: { children: Snippet } = $props();
 </script>
@@ -13,11 +11,7 @@
 </svelte:head>
 
 <main>
-	{#await providers.init()}
-		<p>Loading...</p>
-	{:then}
-		{@render children()}
-	{/await}
+	{@render children()}
 
 	<ErrorsPopup />
 </main>

@@ -24,6 +24,5 @@
 	.video-container {
 		aspect-ratio: 16/9;
 		overflow: hidden;
-		border-radius: 6px;
 	}
 </style>
