@@ -4,12 +4,30 @@
     ".write": false,
     "$roomId": {
       ".write": "auth.uid !== null && !data.exists()",
-      ".read": "auth.uid !== null",
+      "ownerId": {
+        ".read": "auth.uid !== null"
+      },
       "participants": {
+        ".read": "root.child($roomId).child('ownerId').val() === auth.uid || root.child($roomId).child('participants').child(auth.uid).child('status').val() === 'accepted'",
         "$participantId": {
-          ".read": "root.child($roomId).child('requests').child(auth.uid).exists()",
-          ".write": "!data.exists() || ($participantId === auth.uid || root.child($roomId).child('ownerId').val() === auth.uid)",
-          ".validate": "newData.child('status').val() === 'waiting' || ((newData.child('status').val() === 'accepted' || newData.child('status').val() === 'rejected') && root.child($roomId).child('ownerId').val() === auth.uid)"
+          ".read": "$participantId === auth.uid",
+          ".write": "$participantId === auth.uid",
+          "status": {
+            ".validate": "!data.exists() && (newData.val() === 'waiting' || (newData.val() === 'accepted' && root.child($roomId).child('ownerId').val() === auth.uid)) || (newData.val() === 'waiting' || newData.val() === 'accepted' || newData.val() === 'rejected')",
+            ".write": "root.child($roomId).child('ownerId').val() === auth.uid || $participantId === auth.uid"
+          }
+        }
+      },
+      "connections": {
+        ".read": "root.child($roomId).child('participants').child(auth.uid).child('status').val() === 'accepted'",
+        ".write": "root.child($roomId).child('participants').child(auth.uid).child('status').val() === 'accepted'",
+        "$participantId": {
+          ".write": "$participantId === auth.uid && !data.exists()",
+          ".read": "$participantId === auth.uid",
+          "$offerParticipantId": {
+            ".write": "$offerParticipantId === auth.uid && !data.exists()",
+            ".read": "$offerParticipantId === auth.uid"
+          }
         }
       }
     }

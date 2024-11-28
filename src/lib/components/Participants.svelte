@@ -4,6 +4,7 @@
 	import { RequestStatus } from '$lib/types';
 
 	const userIsOwner = $derived(roomStore.roomOwnerId === userStore.id);
+
 </script>
 
 <section>

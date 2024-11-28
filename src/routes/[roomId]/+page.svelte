@@ -3,15 +3,12 @@
 	import Participants from '$lib/components/Participants.svelte';
 	import UserName from '$lib/components/UserName.svelte';
 	import UserVideo from '$lib/components/UserVideo.svelte';
-	import { RequestStatus } from '$lib/types';
+	import { userRepository } from '$lib/providers/repositories/userRepository';
 	import { errorsStore } from '$lib/store/errors.svelte';
 	import { roomStore } from '$lib/store/room.svelte';
 	import { userStore } from '$lib/store/user.svelte';
-	import { userRepository } from '$lib/providers/repositories/userRepository';
-
-	const userName = userRepository.getUserName();
-	userStore.setName(userName);
-
+	import { RequestStatus } from '$lib/types';
+	import { createNewOffer } from './rtcHelper';
 
 	const userIsParticipant = $derived(
 		roomStore.participants.some((participant) => participant.id === userStore.id)
@@ -21,19 +18,39 @@
 			RequestStatus.Accepted
 	);
 
-	$effect(() => {
-		if (!userStore.nameIsEmpty && !userIsParticipant) {
-			connect();
-		}
-	});
+	const userName = userRepository.getUserName();
+	userStore.setName(userName);
 
-	$effect(() => {
-		if (userIsAccepted) {
-			connectRtc();
-		}
-	});
+	$effect(() => roomStore.cleanup);
 
-	async function connect() {
+	$effect(() => void connectToRoom());
+
+	$effect(() => void listenForConnectionsAndCreateOffers());
+
+	async function listenForConnectionsAndCreateOffers() {
+		if (!userIsAccepted || roomStore.connectionPoolCreated) {
+			return;
+		}
+		roomStore.createNewConnectionPool((offers) => {
+			console.log(offers);
+		});
+		console.log('listening for connections', roomStore.participants);
+		for (const participant of roomStore.participants) {
+			if (!userStore.mediaStream) {
+				return;
+			}
+			console.log(participant, roomStore.participants);
+			if (participant.id === userStore.id) {
+				continue;
+			}
+			await createNewOffer(userStore.mediaStream, participant.id);
+		}
+	}
+
+	async function connectToRoom() {
+		if (userStore.nameIsEmpty || userIsParticipant) {
+			return;
+		}
 		const participantStatus =
 			roomStore.roomOwnerId === userStore.id ? RequestStatus.Accepted : RequestStatus.Waiting;
 		try {
@@ -45,9 +62,6 @@
 		} catch (error) {
 			errorsStore.add(error as Error);
 		}
-	}
-	function connectRtc() {
-		// TODO
 	}
 </script>
 

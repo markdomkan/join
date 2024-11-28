@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    // {
+    //   "type": "chrome",
+    //   "request": "launch",
+    //   "name": "Launch Brave against localhost",
+    //   "url": "http://localhost:5173",
+    //   "webRoot": "${workspaceFolder}",
+    //   "sourceMaps": true,
+    //   "skipFiles": ["<node_internals>/**"],
+    //   "runtimeExecutable": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
+    // },
+  ]
+}
